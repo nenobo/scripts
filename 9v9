@@ -131,7 +131,7 @@ function autoHit()
 				end
 			end
 			if hasWindedUp and not hasSwang then
-				local borderBox = workspace.Ignore.BGUI.BlackBoarder
+				local borderBox = workspace.Ignore:FindFirstChild("BlackBoarder", true)
 				local ballPos = camera:WorldToScreenPoint(toAimAt)
 				local BorderPositions = {
 					TopLeft = camera:WorldToScreenPoint(
