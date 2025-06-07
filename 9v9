@@ -5,8 +5,8 @@ local UIS = game:GetService("UserInputService")
 
 local AutoHitBat = true
 local OnlyCheckSwing = false
-local WindupDist = 67
-local HitDist = 16
+local WindupDist = 57
+local HitDist = 14.3
 local OnlyHitInBox = true
 
 local LocalPlayer = Players.LocalPlayer
