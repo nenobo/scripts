@@ -20,8 +20,6 @@ local predictedPos = Vector3.new()
 local lastTick = 0
 local old
 
-setfpscap(144)
-
 spawn(function()
 	repeat wait() until Players.LocalPlayer.Character
 	game.StarterPlayer.AutoJumpEnabled = false
