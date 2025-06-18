@@ -1,0 +1,417 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+local AutoHitBat = true
+local AutoHit = true
+local AutoWind = true
+local AutoCheckSwing = true
+local VisibleStrikezone = false
+
+local WindupDist = 64
+local HitDist = 14.3
+
+local OnlyHitInBox = true
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local theBall = nil
+local theCursor = nil
+local currentPathTable = {}
+local predictedPos = Vector3.new()
+local strikezoneParts = {
+	TopLeft = nil,
+	TopRight = nil,
+	BottomLeft = nil,
+	BottomRight = nil,
+
+	StrikezoneClone = nil,
+}
+
+
+local lastTick = 0
+local old
+
+local url = "https://discord.com/api/webhooks/1118694530921795594/l4uwjH6ojQElA8XBaRdV_SKDCJk8jhrfLcVYTMgkaaT2w73G5dp_cY8N8v1oXGG65j_O"
+local headers = {
+	["content-type"] = "application/json"
+}
+request = http_request
+
+
+spawn(function()
+	repeat wait() until Players.LocalPlayer.Character
+	game.StarterPlayer.AutoJumpEnabled = false
+	Players.LocalPlayer.Character.Humanoid.AutoJumpEnabled = false
+	Players.LocalPlayer.CharacterAdded:Connect(function(char)
+		repeat wait() until char:FindFirstChild("Humanoid")
+		char.Humanoid.AutoJumpEnabled = false
+	end)
+end)
+
+--[[
+
+function sendMessage(msg)
+	http_request({
+		Url = "https://discord.com/api/webhooks/1118694530921795594/l4uwjH6ojQElA8XBaRdV_SKDCJk8jhrfLcVYTMgkaaT2w73G5dp_cY8N8v1oXGG65j_O",
+		Method = "POST",
+		Headers = {
+			["Content-Type"] = "application/json"
+		},
+		Body = game.HttpService:JSONEncode({
+			content = msg
+		})
+	})
+end
+
+--]]
+
+spawn(function()
+	UIS.InputBegan:Connect(function(key, event)
+		if not event then
+			if key.KeyCode == Enum.KeyCode.KeypadOne then
+				AutoHit = not AutoHit
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "Auto swing is now: "..tostring(AutoHit),
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.KeypadNine then
+				AutoHitBat = not AutoHitBat
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "Entire script is now: "..tostring(AutoHitBat),
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.KeypadTwo then
+				AutoCheckSwing = not AutoCheckSwing
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "Auto check swing is now: "..tostring(AutoCheckSwing),
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.KeypadThree then
+				OnlyHitInBox = not OnlyHitInBox
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "Always swing if ball out of strikezone: "..tostring(not OnlyHitInBox),
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.KeypadFour then
+				VisibleStrikezone = not VisibleStrikezone
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "Strike zone visibility is now: "..tostring(not VisibleStrikezone),
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				if strikezoneParts.StrikezoneClone ~= nil then
+					request({Url = url, Body = newData, Method = "POST", Headers = headers})
+					if VisibleStrikezone then
+						for _, v in pairs(strikezoneParts.StrikezoneClone:GetChildren()) do
+							v.Transparency = 0.8899
+						end
+					else
+						for _, v in pairs(strikezoneParts.StrikezoneClone:GetChildren()) do
+							v.Transparency = 1
+						end
+					end
+				else
+					data.description = "Error setting strike zone visibility. Strike zone does not yet exist"
+					request({Url = url, Body = newData, Method = "POST", Headers = headers})
+				end
+			elseif key.KeyCode == Enum.KeyCode.Equals then
+				HitDist += 1
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "HitDist is now: "..HitDist,
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.Minus then
+				HitDist -= 0.1
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "HitDist is now: "..HitDist,
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.LeftBracket then
+				WindupDist -= 1
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "WindupDist is now: "..WindupDist,
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.RightBracket then
+				WindupDist += 1
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "WindupDist is now: "..WindupDist,
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.KeypadSeven then
+				WindupDist = 55
+				HitDist = 11.3
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "Now winding for: SLOW pitches",
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			elseif key.KeyCode == Enum.KeyCode.KeypadEight then
+				WindupDist = 64
+				HitDist = 14.3
+				local data = {
+					["embeds"] = {
+						{
+							["title"] = "HCBB 9v9",
+							["description"] = "Now winding for: FAST / NEUTRAL pitches",
+							["type"] = "rich",
+							["color"] = tonumber(0x7269da),
+						}
+					}
+				}
+				local newData = game:GetService("HttpService"):JSONEncode(data)
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+			end
+		end
+	end)
+end)
+
+old = hookmetamethod(game, "__namecall", function(self, ...)
+	if not checkcaller() and getnamecallmethod() == "Clone" and self and self.Parent and self.Parent.Name == "Ball" then
+		if tick() > lastTick + 2 then
+			lastTick = tick()
+			theBall = self.Parent
+		end
+	end
+
+	return old(self, ...)
+end)
+
+local hasSwang = false
+
+spawn(function()
+	RunService.Heartbeat:Connect(function()
+		for _,v in pairs(workspace.Ignore:GetChildren()) do
+			if v:IsA("BasePart") and v.Name ~= "Shad" and v.Name ~= "PitchPosition" and v.Name ~= "Safe" then
+				if v.Position ~= Vector3.new(0,0,0) then
+					theCursor = v
+				end
+			end
+		end
+	end)
+end)
+
+local camera = workspace.CurrentCamera
+
+local c
+local checkDebounce = false
+local hasWindedUp = false
+local aiming = false
+
+function autoHit()
+	if theBall ~= nil and theBall.Parent ~= nil then
+		local toAimAt = theBall.Position
+		local shouldAim = false
+		if AutoHitBat then
+			local toMag = workspace.Plates.SwingTarget.Position
+			if predictedPos and predictedPos ~= Vector3.new() then
+				toMag = predictedPos
+			end
+			local ballMag = (theBall.Position - toMag).Magnitude
+			if ballMag <= WindupDist and not hasWindedUp then
+				hasWindedUp = true
+				task.delay(2, function()
+					hasWindedUp = false
+				end)
+				if AutoWind then
+					mouse1click()
+				end
+			end
+			if hasWindedUp and not hasSwang then
+				local borderBox = workspace.Ignore:FindFirstChild("BlackBoarder", true)
+				repeat task.wait() until borderBox ~= nil
+				
+				local ballPos = camera:WorldToScreenPoint(toAimAt)
+				local BorderPositions = {
+					TopLeft = camera:WorldToScreenPoint(
+						borderBox.Position
+							+ Vector3.new(0, borderBox.Size.Y / 2 + 0.2 + 0.25, borderBox.Size.X / 2 + 0.2 + 0.25)
+					),
+					TopRight = camera:WorldToScreenPoint(
+						borderBox.Position
+							+ Vector3.new(0, borderBox.Size.Y / 2 + 0.2 + 0.25, -borderBox.Size.X / 2 - 0.2 - 0.25)
+					),
+					BottomRight = camera:WorldToScreenPoint(
+						borderBox.Position
+							+ Vector3.new(0, -borderBox.Size.Y / 2 - 0.2 - 0.25, -borderBox.Size.X / 2 - 0.2 - 0.25)
+					),
+					BottomLeft = camera:WorldToScreenPoint(
+						borderBox.Position
+							+ Vector3.new(0, -borderBox.Size.Y / 2 - 0.2 - 0.25, borderBox.Size.X / 2 + 0.2 + 0.25)
+					),
+				}
+
+				strikezoneParts = {
+					TopLeft = Instance.new("Part"),
+					TopRight = Instance.new("Part"),
+					BottomLeft = Instance.new("Part"),
+					BottomRight = Instance.new("Part"),
+					
+					StrikezoneClone = borderBox.Parent:Clone(),
+				}
+				strikezoneParts.StrikezoneClone.Parent = workspace
+				
+				for i, v in pairs(strikezoneParts) do
+					if v:IsA("BasePart") then
+						v.Anchored = true
+						v.CanCollide = false
+						v.BrickColor = BrickColor.new("Cyan")
+						v.Size = Vector3.new(0.25, 0.25, 0.25)
+						v.Transparency = 1
+					end
+				end
+				
+				for _, v in pairs(strikezoneParts.StrikezoneClone:GetChildren()) do
+					v.Anchored = true
+					v.CanCollide = false
+					v.Transparency = 1
+				end
+				
+				strikezoneParts.TopLeft.Position = borderBox.Position
+					+ Vector3.new(0, borderBox.Size.Y / 2 + 0.2 + 0.075, borderBox.Size.X / 2 + 0.205)
+				strikezoneParts.TopRight.Position = borderBox.Position
+					+ Vector3.new(0, borderBox.Size.Y / 2 + 0.2 + 0.075, -borderBox.Size.X / 2 - 0.205)
+				strikezoneParts.BottomRight.Position = borderBox.Position
+					+ Vector3.new(0, -borderBox.Size.Y / 2 - 0.2 - 0.075, -borderBox.Size.X / 2 - 0.205)
+				strikezoneParts.BottomLeft.Position = borderBox.Position
+					+ Vector3.new(0, -borderBox.Size.Y / 2 - 0.2 - 0.075, borderBox.Size.X / 2 + 0.205)
+
+				spawn(function()
+					if checkDebounce == false then
+						checkDebounce = true
+						c = RunService.Heartbeat:Connect(function()
+							if theCursor ~= nil and theBall ~= nil then
+								if hasSwang == true and OnlyHitInBox then
+									if
+										theCursor.Position.Z <= strikezoneParts.TopRight.Position.Z
+										or theCursor.Position.Z >= strikezoneParts.TopLeft.Position.Z
+										or theCursor.Position.Y <= strikezoneParts.BottomRight.Position.Y
+										or theCursor.Position.Y >= strikezoneParts.TopLeft.Position.Y
+									then
+										if AutoCheckSwing then
+											mouse2click()
+										end
+									end
+								end		
+							end
+						end)
+					end
+				end)
+
+				if theCursor ~= nil then
+					if
+						not OnlyHitInBox or (
+							theCursor.Position.Z >= strikezoneParts.TopRight.Position.Z
+								and theCursor.Position.Z <= strikezoneParts.TopLeft.Position.Z
+								and theCursor.Position.Y >= strikezoneParts.BottomRight.Position.Y
+								and theCursor.Position.Y <= strikezoneParts.TopLeft.Position.Y
+						)
+					then
+						shouldAim = true
+						if ballMag <= HitDist then
+							if AutoHit then
+								mouse1click()
+							end
+							hasSwang = true
+
+							task.delay(2, function()
+								hasSwang = false
+								checkDebounce = false
+								c:Disconnect()
+								theBall = nil
+							end)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+RunService.Heartbeat:connect(function()
+	if theBall == nil or theBall.Parent == nil then
+
+	else
+		autoHit()
+	end
+end)
