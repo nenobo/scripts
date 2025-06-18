@@ -26,10 +26,8 @@ local strikezoneParts = {
 	TopRight = nil,
 	BottomLeft = nil,
 	BottomRight = nil,
-
-	StrikezoneClone = nil,
 }
-
+local clonedStrikezone = nil
 
 local lastTick = 0
 local old
@@ -140,20 +138,19 @@ spawn(function()
 					}
 				}
 				local newData = game:GetService("HttpService"):JSONEncode(data)
-				if strikezoneParts.StrikezoneClone ~= nil then
-					request({Url = url, Body = newData, Method = "POST", Headers = headers})
-					if VisibleStrikezone then
-						for _, v in pairs(strikezoneParts.StrikezoneClone:GetChildren()) do
-							v.Transparency = 0.8899
-						end
-					else
-						for _, v in pairs(strikezoneParts.StrikezoneClone:GetChildren()) do
-							v.Transparency = 1
-						end
+				request({Url = url, Body = newData, Method = "POST", Headers = headers})
+				if clonedStrikezone ~= nil and not VisibleStrikezone then clonedStrikezone:Destroy() clonedStrikezone = nil return end
+				
+				local found = workspace.Ignore:FindFirstChild("BlackBoarder", true)
+				if not found then return end
+				clonedStrikezone = found.Parent:Clone()
+				
+				if VisibleStrikezone then
+					for _,v in pairs(clonedStrikezone:GetChildren()) do
+						v.Transparency = 0.8899
 					end
-				else
-					data.description = "Error setting strike zone visibility. Strike zone does not yet exist"
-					request({Url = url, Body = newData, Method = "POST", Headers = headers})
+					
+					clonedStrikezone.Parent = workspace
 				end
 			elseif key.KeyCode == Enum.KeyCode.Equals then
 				HitDist += 1
@@ -299,7 +296,6 @@ function autoHit()
 			end
 			if hasWindedUp and not hasSwang then
 				local borderBox = workspace.Ignore:FindFirstChild("BlackBoarder", true)
-				repeat task.wait() until borderBox ~= nil
 				
 				local ballPos = camera:WorldToScreenPoint(toAimAt)
 				local BorderPositions = {
@@ -326,10 +322,7 @@ function autoHit()
 					TopRight = Instance.new("Part"),
 					BottomLeft = Instance.new("Part"),
 					BottomRight = Instance.new("Part"),
-					
-					StrikezoneClone = borderBox.Parent:Clone(),
 				}
-				strikezoneParts.StrikezoneClone.Parent = workspace
 				
 				for i, v in pairs(strikezoneParts) do
 					if v:IsA("BasePart") then
@@ -340,13 +333,7 @@ function autoHit()
 						v.Transparency = 1
 					end
 				end
-				
-				for _, v in pairs(strikezoneParts.StrikezoneClone:GetChildren()) do
-					v.Anchored = true
-					v.CanCollide = false
-					v.Transparency = 1
-				end
-				
+
 				strikezoneParts.TopLeft.Position = borderBox.Position
 					+ Vector3.new(0, borderBox.Size.Y / 2 + 0.2 + 0.075, borderBox.Size.X / 2 + 0.205)
 				strikezoneParts.TopRight.Position = borderBox.Position
