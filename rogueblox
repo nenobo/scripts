@@ -38,7 +38,8 @@ local whitelistedItems = {
 	"Azure Block",
 	"Lifestealing Block",
 	"Honey Block",
-	"Demon Heart"
+	"Demon Heart",
+	"Honey Charge"
 }
 
 if game.PlaceId == ingameId then
@@ -96,7 +97,7 @@ if game.PlaceId == ingameId then
 	end
 	
 	if chest1 ~= nil and chest2 ~= nil then
-		local c1CFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = chest1Part.CFrame})
+		local c1CFrame = ts:Create(hrp, TweenInfo.new(6), {CFrame = chest1Part.CFrame})
 		c1CFrame:Play()
 		c1CFrame.Completed:Wait()
 		task.wait(1)
@@ -118,7 +119,7 @@ if game.PlaceId == ingameId then
 			end
 		end
 		if chestGui ~= nil then firesignal(chestGui.Frame.Exit.MouseButton1Click) end
-		task.wait(1.25)
+		task.wait(3.25)
 		local c2CFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = chest2Part.CFrame})
 		c2CFrame:Play()
 		c2CFrame.Completed:Wait()
@@ -141,8 +142,8 @@ if game.PlaceId == ingameId then
 			end
 		end
 		if chestGui ~= nil then firesignal(chestGui.Frame.Exit.MouseButton1Click) end
-		task.wait(1.25)
-		local startCFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = startingPosition})
+		task.wait(3.25)
+		local startCFrame = ts:Create(hrp, TweenInfo.new(6), {CFrame = startingPosition})
 		startCFrame:Play()
 		startCFrame.Completed:Wait()
 		task.wait(2)
@@ -157,7 +158,7 @@ if game.PlaceId == ingameId then
 	end
 
 	task.wait(45)
-	local startCFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = startingPosition})
+	local startCFrame = ts:Create(hrp, TweenInfo.new(6), {CFrame = startingPosition})
 	startCFrame:Play()
 	startCFrame.Completed:Wait()
 	task.wait(0.25)
