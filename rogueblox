@@ -1,0 +1,172 @@
+local startingPosition = CFrame.new(-3019.96, -366.13, -548.23)
+local chest1Position = CFrame.new(-2752.22, -487.84, -594.24)
+local chest2Position = CFrame.new(-2778.33, -487.84, -613.52)
+
+local chest1Part = Instance.new("Part")
+local chest2Part = Instance.new("Part")
+
+local ts = game:GetService("TweenService")
+local plr = game.Players.LocalPlayer
+
+chest1Part.Size = Vector3.new(6, 6, 6)
+chest2Part.Size = Vector3.new(6, 6, 6)
+chest1Part.Anchored = true
+chest2Part.Anchored = true
+chest1Part.CanCollide = false
+chest2Part.CanCollide = false
+chest1Part.Transparency = 0.80
+chest2Part.Transparency = 0.80
+chest1Part.Parent = workspace
+chest2Part.Parent = workspace
+chest1Part.CFrame = chest1Position
+chest2Part.CFrame = chest2Position
+
+local pC1 = workspace:GetPartBoundsInBox(chest1Part.CFrame, chest1Part.Size, OverlapParams.new())
+local pC2 = workspace:GetPartBoundsInBox(chest2Part.CFrame, chest2Part.Size, OverlapParams.new())
+
+local chest1 = nil
+local chest2 = nil
+
+local chest1CD = nil
+local chest2CD = nil
+
+local ingameId = 15864234183
+local menuId = 3864502222
+
+local selectedSlot = 1
+
+local whitelistMode = true
+local whitelistedItems = {
+	"Moonshine Relic",
+	"Mysterious Mask",
+	"Goldblood",
+	"Hexstar",
+	"Scroll of Gate",
+	"Scroll of Conatum",
+	"Scroll of Ludicium",
+	"Scroll of Zimzap",
+	"Scroll of Hearth",
+	"Scroll of Pondus Ultima",
+	"Viral Block",
+	"Vampiric Block",
+	"Aftercut Block",
+	"Flashing Block",
+	"Meowmere",
+	"Rogue Block",
+	"Azure Block",
+	"Lifestealing Block",
+	"Honey Block",
+	"Demon Heart"
+}
+
+if game.PlaceId == ingameId then
+	repeat task.wait() until plr.PlayerGui:FindFirstChild("MainMenu")
+	mouse1click()
+	repeat task.wait() until plr.Character ~= nil
+	
+	local char = plr.Character
+	local hrp = char:WaitForChild("HumanoidRootPart")
+
+	local settingsGui = plr.PlayerGui:WaitForChild("SettingsGui")
+	local menuButton = settingsGui.Frame.MenuButton
+	
+	for _,v in pairs(pC1) do
+		if string.find(v.Parent.Name, "chest") then
+			chest1 = v.Parent
+			chest1CD = chest1:FindFirstChild("OpenChest")
+			break
+		end
+	end
+
+	for _,v in pairs(pC2) do
+		if string.find(v.Parent.Name, "chest") then
+			chest2 = v.Parent
+			chest2CD = chest2:FindFirstChild("OpenChest")
+			break
+		end
+	end
+
+	task.wait(10)
+
+	if chest1 ~= nil and chest2 ~= nil then
+		local c1CFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = chest1Part.CFrame})
+		c1CFrame:Play()
+		c1CFrame.Completed:Wait()
+		task.wait(1)
+		fireclickdetector(chest1CD)
+		repeat task.wait() until plr.PlayerGui:FindFirstChild("ChestGui")
+		local chestGui = plr.PlayerGui:FindFirstChild("ChestGui")
+		for i = 1, 10 do
+			task.wait(0.50)
+			if whitelistMode then
+				for _,v in pairs(chestGui.Frame.Pool:GetChildren()) do
+					if table.find(whitelistedItems, v.Name) then
+						if v:IsA("TextButton") then
+							firesignal(v.MouseButton1Click)
+						end
+					end
+				end
+			else
+				firesignal(chestGui.Frame.LootAll.MouseButton1Click)
+			end
+		end
+		if chestGui ~= nil then firesignal(chestGui.Frame.Exit.MouseButton1Click) end
+		task.wait(1.25)
+		local c2CFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = chest2Part.CFrame})
+		c2CFrame:Play()
+		c2CFrame.Completed:Wait()
+		task.wait(3)
+		fireclickdetector(chest2CD)
+		repeat task.wait() until plr.PlayerGui:FindFirstChild("ChestGui")
+		local chestGui = plr.PlayerGui:FindFirstChild("ChestGui")
+		for i = 1, 10 do
+			task.wait(0.50)
+			if whitelistMode then
+				for _,v in pairs(chestGui.Frame.Pool:GetChildren()) do
+					if table.find(whitelistedItems, v.Name) then
+						if v:IsA("TextButton") then
+							firesignal(v.MouseButton1Click)
+						end
+					end
+				end
+			else
+				firesignal(chestGui.Frame.LootAll.MouseButton1Click)
+			end
+		end
+		if chestGui ~= nil then firesignal(chestGui.Frame.Exit.MouseButton1Click) end
+		task.wait(1.25)
+		local startCFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = startingPosition})
+		startCFrame:Play()
+		startCFrame.Completed:Wait()
+		task.wait(2)
+		while task.wait(2.25) do
+			firesignal(menuButton.MouseButton1Click)
+		end
+	else
+		task.wait(4)
+		while task.wait(2.25) do
+			firesignal(menuButton.MouseButton1Click)
+		end
+	end
+
+	task.wait(45)
+	local startCFrame = ts:Create(hrp, TweenInfo.new(2), {CFrame = startingPosition})
+	startCFrame:Play()
+	startCFrame.Completed:Wait()
+	task.wait(0.25)
+	task.spawn(function()
+		while task.wait(2.25) do
+			firesignal(menuButton.MouseButton1Click)
+		end
+	end)
+elseif game.PlaceId == menuId then
+	local mainMenuGui = plr.PlayerGui:WaitForChild("MainMenuGui")
+	local slotsFrame = mainMenuGui.Frame.SlotSelection.Slots
+	local slotButton = slotsFrame:FindFirstChild(tostring(selectedSlot))
+	
+	firesignal(mainMenuGui.Frame.MainScreen.Play.MouseButton1Click)
+	task.wait(0.10)
+	firesignal(slotButton.Frame.MouseButton1Click)
+	task.wait(0.10)
+	firesignal(mainMenuGui.Frame.ServerList.QuickJoin.MouseButton1Click)
+end
