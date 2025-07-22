@@ -16,7 +16,6 @@ local ingameId = 15864234183
 local menuId = 3864502222
 
 local selectedSlot = 1
-local plrName = "nebalt_11"
 
 local whitelistMode = true
 local whitelistedItems = {
