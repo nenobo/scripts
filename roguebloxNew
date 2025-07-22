@@ -55,15 +55,18 @@ if game.PlaceId == ingameId then
 
 	local char = plr.Character
 	local hrp = char:WaitForChild("HumanoidRootPart")
-	
+
 	task.wait(2)
-	
+
 	local settingsGui = plr.PlayerGui:WaitForChild("SettingsGui")
 	local menuButton = settingsGui.Frame.MenuButton
 
 	local chest1Part = Instance.new("Part")
 	local chest2Part = Instance.new("Part")
-
+	
+	local chest1HasItems = false
+	local chest2HasItems = false
+	
 	chest1Part.Size = Vector3.new(6, 6, 6)
 	chest2Part.Size = Vector3.new(6, 6, 6)
 	chest1Part.Anchored = true
@@ -95,15 +98,15 @@ if game.PlaceId == ingameId then
 			break
 		end
 	end
-	
+
 	if chest1 == nil and chest2 == nil then
 		while task.wait(2.25) do
 			firesignal(menuButton.MouseButton1Click)
 		end
 	end
-	
+
 	task.wait(10)
-	
+
 	task.spawn(function()
 		task.wait(45)
 		local startCFrame = ts:Create(hrp, TweenInfo.new(6), {CFrame = startingPosition})
@@ -116,18 +119,18 @@ if game.PlaceId == ingameId then
 			end
 		end)
 	end)
-	
+
 	if chest1 ~= nil then
 		local chestGui
 		local chest1Contents = chest1.Items
-		local chest1HasItems = false
+		chest1HasItems = false
 		if whitelistMode then
 			for _,v in pairs(chest1Contents:GetChildren()) do
 				if table.find(whitelistedItems, v.Name) then
 					chest1HasItems = true
 				end
 			end
-			
+
 			if chest1HasItems then
 				local c1CFrame = ts:Create(hrp, TweenInfo.new(6), {CFrame = chest1Part.CFrame})
 				c1CFrame:Play()
@@ -160,15 +163,15 @@ if game.PlaceId == ingameId then
 				firesignal(chestGui.Frame.LootAll.MouseButton1Click)
 			end
 		end
-		
+
 		if chestGui ~= nil then firesignal(chestGui.Frame.Exit.MouseButton1Click) end
-		task.wait(3.25)
+		if chest1HasItems then task.wait(3.25) end
 	end
-	
+
 	if chest2 ~= nil then
 		local chestGui
 		local chest2Contents = chest2.Items
-		local chest2HasItems = false
+		chest2HasItems = false
 		if whitelistMode then
 			for _,v in pairs(chest2Contents:GetChildren()) do
 				if table.find(whitelistedItems, v.Name) then
@@ -210,7 +213,13 @@ if game.PlaceId == ingameId then
 		end
 
 		if chestGui ~= nil then firesignal(chestGui.Frame.Exit.MouseButton1Click) end
-		task.wait(3.25)
+		if chest2HasItems then task.wait(3.25) end
+	end
+	
+	if not chest1HasItems and not chest2HasItems then
+		while task.wait(2.25) do
+			firesignal(menuButton.MouseButton1Click)
+		end
 	end
 	
 	local startCFrame = ts:Create(hrp, TweenInfo.new(6), {CFrame = startingPosition})
