@@ -1,3 +1,6 @@
+repeat task.wait() until game.Loaded or game:IsLoaded()
+print("hi")
+
 local startingPosition = CFrame.new(-3019.96, -366.13, -548.23)
 local chest1Position = CFrame.new(-2752.22, -487.84, -594.24)
 local chest2Position = CFrame.new(-2778.33, -487.84, -613.52)
@@ -6,7 +9,6 @@ local chest1Part = Instance.new("Part")
 local chest2Part = Instance.new("Part")
 
 local ts = game:GetService("TweenService")
-local plr = game.Players.LocalPlayer
 
 chest1Part.Size = Vector3.new(6, 6, 6)
 chest2Part.Size = Vector3.new(6, 6, 6)
@@ -34,6 +36,7 @@ local ingameId = 15864234183
 local menuId = 3864502222
 
 local selectedSlot = 1
+local plrName = "nebalt_11"
 
 local whitelistMode = true
 local whitelistedItems = {
@@ -60,18 +63,22 @@ local whitelistedItems = {
 }
 
 if game.PlaceId == ingameId then
-	repeat task.wait() until plr
-	repeat task.wait() until plr.PlayerGui
+	repeat task.wait() until game.Players.LocalPlayer
+	local plr = game.Players.LocalPlayer
+	plr:WaitForChild("PlayerGui")
 	repeat task.wait() until plr.PlayerGui:FindFirstChild("MainMenu")
-	mouse1click()
-	repeat task.wait() until plr.Character ~= nil
 	
+	task.wait(2)
+	repeat mouse1click() task.wait(0.25) until not plr.PlayerGui:FindFirstChild("MainMenu")
+	
+	repeat task.wait() until plr.Character ~= nil
+
 	local char = plr.Character
 	local hrp = char:WaitForChild("HumanoidRootPart")
 
 	local settingsGui = plr.PlayerGui:WaitForChild("SettingsGui")
 	local menuButton = settingsGui.Frame.MenuButton
-	
+
 	for _,v in pairs(pC1) do
 		if string.find(v.Parent.Name, "chest") then
 			chest1 = v.Parent
@@ -162,16 +169,17 @@ if game.PlaceId == ingameId then
 		end
 	end)
 elseif game.PlaceId == menuId then
-	repeat task.wait() until plr
-	repeat task.wait() until plr.PlayerGui
-	
+	repeat task.wait() until game.Players.LocalPlayer
+	local plr = game.Players.LocalPlayer
+	plr:WaitForChild("PlayerGui")
+
 	local mainMenuGui = plr.PlayerGui:WaitForChild("MainMenuGui")
 	local slotsFrame = mainMenuGui.Frame.SlotSelection.Slots
-	local slotButton = slotsFrame:FindFirstChild(tostring(selectedSlot))
-	
+	local slotButton = slotsFrame:WaitForChild(tostring(selectedSlot))
+
 	firesignal(mainMenuGui.Frame.MainScreen.Play.MouseButton1Click)
 	task.wait(0.10)
 	firesignal(slotButton.Frame.MouseButton1Click)
-	task.wait(0.10)
+	task.wait(2)
 	firesignal(mainMenuGui.Frame.ServerList.QuickJoin.MouseButton1Click)
 end
