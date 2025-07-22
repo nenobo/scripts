@@ -1,5 +1,4 @@
 repeat task.wait() until game.Loaded or game:IsLoaded()
-print("hi")
 
 local startingPosition = CFrame.new(-3019.96, -366.13, -548.23)
 local chest1Position = CFrame.new(-2752.22, -487.84, -594.24)
