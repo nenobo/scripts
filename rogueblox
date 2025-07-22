@@ -60,6 +60,8 @@ local whitelistedItems = {
 }
 
 if game.PlaceId == ingameId then
+	repeat task.wait() until plr
+	repeat task.wait() until plr.PlayerGui
 	repeat task.wait() until plr.PlayerGui:FindFirstChild("MainMenu")
 	mouse1click()
 	repeat task.wait() until plr.Character ~= nil
@@ -160,6 +162,9 @@ if game.PlaceId == ingameId then
 		end
 	end)
 elseif game.PlaceId == menuId then
+	repeat task.wait() until plr
+	repeat task.wait() until plr.PlayerGui
+	
 	local mainMenuGui = plr.PlayerGui:WaitForChild("MainMenuGui")
 	local slotsFrame = mainMenuGui.Frame.SlotSelection.Slots
 	local slotButton = slotsFrame:FindFirstChild(tostring(selectedSlot))
